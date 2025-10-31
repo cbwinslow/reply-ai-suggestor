@@ -31,9 +31,10 @@ Format rules (must follow):
 
 - [x] Provider adapter abstraction and Gemini/Qwen adapters - GitHub Issue #7, GitLab Issue #7
   - Microgoals:
-    - [ ] Define adapter interface (input/output contract) and add to `backend/providers/README.md`.
-    - [ ] Implement a Gemini adapter (mocked for dev) with integration test
-    - [ ] Implement a Qwen adapter (mocked for dev) with integration test
+    - [x] Define adapter interface (input/output contract) and add to `backend/providers/README.md`.
+    - [x] Implement a Gemini adapter (mocked for dev) with integration test
+    - [x] Implement a Qwen adapter (mocked for dev) with integration test
+    - [x] Implement OpenRouter adapter with free models for development (completed 2025-10-31)
   - Acceptance criteria: `backend/main.py` can switch provider via config and provider adapters have tests.
 
 ## 2. Android (IME + App)
@@ -133,6 +134,20 @@ Format rules (must follow):
     - [ ] Design caching strategies (suggestion caching, model caching, context caching)
     - [ ] Create resource monitoring and optimization triggers
   - Acceptance criteria: Performance requirements document with monitoring and optimization plans.
+
+## 8. New Tasks (October 31, 2025)
+
+- [ ] Design SMS overlay interface
+  - Prototype the SMS overlay interface using Jetpack Compose and InputMethodService.
+  - Acceptance criteria: Functional prototype demonstrating overlay on SMS apps with faint-text suggestions.
+
+- [ ] Implement advanced IME UI features
+  - Add accessibility labels, keyboard compatibility checks, and advanced UI features for the IME prototype.
+  - Acceptance criteria: Enhanced IME prototype with accessibility and compatibility improvements.
+
+- [ ] Privacy compliance tasks
+  - Draft privacy policy text, Play Store listing privacy statements, and data handling disclosures.
+  - Acceptance criteria: Privacy policy added to `docs/privacy.md` and referenced in `README.md`.
 
 ---
 
