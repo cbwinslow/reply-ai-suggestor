@@ -28,7 +28,8 @@ fun SettingsScreen() {
     val context = LocalContext.current
     val store = remember { PersonalizationStore(context) }
     val coroutineScope = rememberCoroutineScope()
-    var consent by remember { mutableStateOf(store.hasConsent()) }
+    var consent by remember { mutableStateOf(PreferencesHelper.isConsentGiven(context)) }
+    var personalizationEnabled by remember { mutableStateOf(PreferencesHelper.isPersonalizationEnabled(context)) }
     var intensity by remember { mutableStateOf(5f) }
     var statusMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -41,10 +42,19 @@ fun SettingsScreen() {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Checkbox(checked = consent, onCheckedChange = {
                     consent = it
-                    store.setConsent(it)
+                    PreferencesHelper.setConsentGiven(context, it)
                     statusMessage = if (it) "Consent granted" else "Consent revoked"
                 })
                 Text("I consent to local message processing for personalization")
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Checkbox(checked = personalizationEnabled, onCheckedChange = {
+                    personalizationEnabled = it
+                    PreferencesHelper.setPersonalizationEnabled(context, it)
+                    statusMessage = if (it) "Personalization enabled" else "Personalization disabled"
+                })
+                Text("Enable personalization (stores anonymized examples locally)")
             }
 
             Text("Intensity: ${intensity.toInt()}")
@@ -98,6 +108,7 @@ fun SettingsScreen() {
                             isLoading = true
                             try {
                                 val serverDeleted = NetworkClient.deletePersonalization("dev_user")
+                                PreferencesHelper.clearAllData(context)
                                 store.clearPersonalization()
                                 statusMessage = "Deleted local data" + if (serverDeleted) ", server deletion OK" else ", server deletion failed"
                                 Toast.makeText(context, statusMessage, Toast.LENGTH_SHORT).show()

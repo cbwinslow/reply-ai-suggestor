@@ -149,6 +149,9 @@ Format rules (must follow):
   - Draft privacy policy text, Play Store listing privacy statements, and data handling disclosures.
   - Acceptance criteria: Privacy policy added to `docs/privacy.md` and referenced in `README.md`.
 
+- [x] Implement privacy compliance features (consent dialog, settings screen, data controls) (completed 2025-10-31)
+  - Acceptance criteria: MainActivity shows consent dialog on first launch; SettingsActivity allows toggling consent/personalization, export/delete data; backend supports upload/delete personalization endpoints.
+
 ---
 
 ### Example of striking-out (do not remove lines)

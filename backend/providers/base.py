@@ -19,9 +19,14 @@ class SuggestRequest(BaseModel):
     user_profile_summary: Optional[str] = None
 
 
+class SuggestionItem(BaseModel):
+    text: str
+    tone: str
+
+
 class SuggestResponse(BaseModel):
     """Response model for suggestion generation."""
-    suggestions: List[str]
+    suggestions: List[SuggestionItem]
     metadata: Optional[Dict[str, Any]] = None
 
 

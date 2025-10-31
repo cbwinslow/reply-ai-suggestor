@@ -1,5 +1,6 @@
 package com.replyaisuggester
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,10 +23,40 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReplyAISuggesterApp() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var showConsentDialog by remember { mutableStateOf(!PreferencesHelper.isConsentGiven(context)) }
     var input by remember { mutableStateOf("") }
     var suggestions by remember { mutableStateOf(listOf<String>()) }
 
-    MaterialTheme {
+    if (showConsentDialog) {
+        AlertDialog(
+            onDismissRequest = { /* Prevent dismissal */ },
+            title = { Text("Privacy Consent") },
+            text = {
+                Text(
+                    "This app accesses your typing to provide reply suggestions. " +
+                    "With your consent, we can personalize suggestions by storing anonymized data locally. " +
+                    "You can opt-out anytime in settings. Do you consent?"
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    PreferencesHelper.setConsentGiven(context, true)
+                    showConsentDialog = false
+                }) {
+                    Text("Accept")
+                }
+            },
+            dismissButton = {
+                Button(onClick = {
+                    // Exit app
+                    (context as? ComponentActivity)?.finish()
+                }) {
+                    Text("Decline")
+                }
+            }
+        )
+    } else {
         Scaffold(topBar = {
             TopAppBar(title = { Text("Reply AI Suggester") })
         }) { padding ->
@@ -52,17 +83,21 @@ fun ReplyAISuggesterApp() {
                                 userId = "dev_user",
                                 context = input,
                                 modes = listOf("casual", "formal", "witty"),
-                                intensity = 6
+                                intensity = 6,
+                                provider = "mock"
                             )
                             // Post results back to UI thread
                             (androidx.compose.ui.platform.LocalContext.current as? android.app.Activity)?.runOnUiThread {
-                                suggestions = result
+                                suggestions = result.map { it.text }
                             }
                         }.start()
                     }) {
                         Text("Generate suggestions")
                     }
-                    Button(onClick = { /* Open settings activity */ }) {
+                    Button(onClick = {
+                        val intent = Intent(context, SettingsActivity::class.java)
+                        context.startActivity(intent)
+                    }) {
                         Text("Settings")
                     }
                 }

@@ -25,16 +25,24 @@ class SuggestRequest(BaseModel):
     context: str
     modes: List[str] = ["casual", "formal", "witty"]
     intensity: int = 5
+    provider: str = "mock"
+
+
+class SuggestionItem(BaseModel):
+    text: str
+    tone: str
 
 
 class SuggestResponse(BaseModel):
-    suggestions: List[str]
+    suggestions: List[SuggestionItem]
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
 
+
+from providers.base import BaseProvider, SuggestRequest as BaseSuggestRequest, SuggestResponse, SuggestionItem, ProviderConfig
 
 def _intensity_suffix(intensity: int) -> str:
     # Simple heuristic: higher intensity -> add punctuation/emojis or stronger wording
@@ -49,32 +57,54 @@ def _intensity_suffix(intensity: int) -> str:
     return "!!! 🔥"
 
 
+class MockProvider(BaseProvider):
+    def _validate_config(self):
+        pass
+
+    async def suggest(self, request: BaseSuggestRequest) -> SuggestResponse:
+        base = request.context.strip()
+        suffix = _intensity_suffix(request.intensity)
+        suggestions: List[SuggestionItem] = []
+
+        for mode in request.modes:
+            m = mode.lower()
+            if m == "casual":
+                suggestions.append(SuggestionItem(text=f"{base} — sounds good to me{suffix}", tone="casual"))
+            elif m == "formal":
+                suggestions.append(SuggestionItem(text=f"{base}. I will proceed as discussed{suffix}", tone="formal"))
+            elif m == "witty":
+                suggestions.append(SuggestionItem(text=f"{base} — because why not, right?{suffix}", tone="witty"))
+            else:
+                suggestions.append(SuggestionItem(text=f"{base} ({m}){suffix}", tone="neutral"))
+
+        suggestions = suggestions[:10]
+        return SuggestResponse(suggestions=suggestions)
+
+    def get_provider_name(self) -> str:
+        return "Mock Provider"
+
+    def get_cost_estimate(self, request: BaseSuggestRequest) -> float:
+        return 0.0
+providers = {
+    "mock": MockProvider(ProviderConfig()),
+}
+
+
 @app.post("/suggest", response_model=SuggestResponse)
 async def suggest(req: SuggestRequest, request: Request):
     logger.info("/suggest called by %s from %s", req.user_id, request.client)
     if not req.context or not req.context.strip():
         raise HTTPException(status_code=400, detail="Empty context")
 
-    base = req.context.strip()
-    suffix = _intensity_suffix(req.intensity)
-    suggestions: List[str] = []
-
-    for mode in req.modes:
-        m = mode.lower()
-        if m == "casual":
-            suggestions.append(f"{base} — sounds good to me{suffix}")
-        elif m == "formal":
-            suggestions.append(f"{base}. I will proceed as discussed{suffix}")
-        elif m == "witty":
-            suggestions.append(f"{base} — because why not, right?{suffix}")
-        else:
-            # generic fallback
-            suggestions.append(f"{base} ({m}){suffix}")
-
-    # Limit suggestions to avoid very large responses
-    suggestions = suggestions[:10]
-
-    return SuggestResponse(suggestions=suggestions)
+    provider = providers.get(req.provider, providers["mock"])
+    base_request = BaseSuggestRequest(
+        user_id=req.user_id,
+        context=req.context,
+        modes=req.modes,
+        intensity=req.intensity
+    )
+    response = await provider.suggest(base_request)
+    return response
 
 
 @app.post("/train")

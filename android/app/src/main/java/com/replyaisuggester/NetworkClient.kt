@@ -6,8 +6,12 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
+import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
+import org.json.JSONObject
+
+data class Suggestion(val text: String, val tone: String)
 
 object NetworkClient {
     // Use emulator host mapping for localhost during development: 10.0.2.2
@@ -24,40 +28,81 @@ object NetworkClient {
 
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
-    suspend fun postSuggest(userId: String, context: String, modes: List<String>, intensity: Int): List<String> {
-        return withContext(Dispatchers.IO) {
+    // Throttling: allow 1 request per 5 seconds
+    private val lastRequestTime = AtomicLong(0)
+    private const val THROTTLE_DELAY_MS = 5000L
+
+    // Simple cache: context -> suggestions
+    private val cache = mutableMapOf<String, List<Suggestion>>()
+    private const val MAX_CACHE_SIZE = 50
+
+    suspend fun postSuggest(userId: String, context: String, modes: List<String>, intensity: Int, provider: String = "mock"): List<Suggestion> {
+        // Check cache first
+        val cacheKey = "$context-${modes.joinToString()}-$intensity-$provider"
+        cache[cacheKey]?.let { return it }
+
+        // Throttling
+        val now = System.currentTimeMillis()
+        val last = lastRequestTime.get()
+        if (now - last < THROTTLE_DELAY_MS) {
+            delay(THROTTLE_DELAY_MS - (now - last))
+        }
+        lastRequestTime.set(System.currentTimeMillis())
+
+        // Retry with backoff
+        var attempt = 0
+        val maxAttempts = 3
+        while (attempt < maxAttempts) {
             try {
-                val payload = JSONObject().apply {
-                    put("user_id", userId)
-                    put("context", context)
-                    put("modes", modes)
-                    put("intensity", intensity)
+                val result = performRequest(userId, context, modes, intensity, provider)
+                // Cache the result
+                if (cache.size >= MAX_CACHE_SIZE) {
+                    cache.remove(cache.keys.first())
                 }
-
-                val requestBody = payload.toString().toRequestBody(jsonMediaType)
-                val request = Request.Builder()
-                    .url(SUGGEST_URL)
-                    .post(requestBody)
-                    .build()
-
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) {
-                        return@withContext listOf("(error contacting backend: ${response.code})")
-                    }
-
-                    val responseBody = response.body?.string()
-                        ?: return@withContext listOf("(empty response from backend)")
-
-                    val json = JSONObject(responseBody)
-                    val arr = json.getJSONArray("suggestions")
-                    val outList = mutableListOf<String>()
-                    for (i in 0 until arr.length()) {
-                        outList.add(arr.getString(i))
-                    }
-                    outList
-                }
+                cache[cacheKey] = result
+                return result
             } catch (e: Exception) {
-                listOf("(network error: ${e.message ?: "unknown"})")
+                attempt++
+                if (attempt >= maxAttempts) throw e
+                delay(1000L * attempt) // Exponential backoff
+            }
+        }
+        return listOf(Suggestion("(network error)", "error"))
+    }
+
+    private suspend fun performRequest(userId: String, context: String, modes: List<String>, intensity: Int, provider: String): List<Suggestion> {
+        return withContext(Dispatchers.IO) {
+            val payload = JSONObject().apply {
+                put("user_id", userId)
+                put("context", context)
+                put("modes", modes)
+                put("intensity", intensity)
+                put("provider", provider)
+            }
+            val requestBody = payload.toString().toRequestBody(jsonMediaType)
+            val request = Request.Builder()
+                .url(SUGGEST_URL)
+                .post(requestBody)
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    throw Exception("HTTP ${response.code}")
+                }
+
+                val responseBody = response.body?.string()
+                    ?: throw Exception("Empty response")
+
+                val json = JSONObject(responseBody)
+                val arr = json.getJSONArray("suggestions")
+                val outList = mutableListOf<Suggestion>()
+                for (i in 0 until arr.length()) {
+                    val item = arr.getJSONObject(i)
+                    val text = item.getString("text")
+                    val tone = item.getString("tone")
+                    outList.add(Suggestion(text, tone))
+                }
+                outList
             }
         }
     }
