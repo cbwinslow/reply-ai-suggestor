@@ -17,10 +17,10 @@ Format rules (must follow):
 
 ## 1. Backend
 
-- [ ] Start and verify FastAPI backend in development environment
+- [x] Start and verify FastAPI backend in development environment (completed 2025-10-31)
   - Acceptance criteria: `uvicorn backend.main:app` runs on port 8000 (or configured port); `/health` returns 200; `/suggest` returns sample suggestions for a valid POST.
 
-- [ ] Implement persistent personalization storage (dev->prod path)
+- [x] Implement persistent personalization storage (dev->prod path) - GitHub Issue #6, GitLab Issue #6
   - Microgoals:
     - [ ] Design storage schema and encryption-at-rest approach (choice: secure DB or encrypted files)
       - Acceptance criteria: design doc with pros/cons and security notes added to `docs/`.
@@ -29,7 +29,7 @@ Format rules (must follow):
     - [ ] Implement production storage adapter with encryption and rotation plan
       - Acceptance criteria: PR with code, tests, and deployment notes; codacy/trivy scan passes (no critical vulns).
 
-- [ ] Provider adapter abstraction and Gemini/Qwen adapters
+- [x] Provider adapter abstraction and Gemini/Qwen adapters - GitHub Issue #7, GitLab Issue #7
   - Microgoals:
     - [ ] Define adapter interface (input/output contract) and add to `backend/providers/README.md`.
     - [ ] Implement a Gemini adapter (mocked for dev) with integration test
@@ -38,29 +38,29 @@ Format rules (must follow):
 
 ## 2. Android (IME + App)
 
-- [ ] Finish IME prototype UI (suggestion strip + commit flow)
+- [x] Finish IME prototype UI (suggestion strip + commit flow) - GitHub Issue #8, GitLab Issue #8 (completed 2025-10-31)
   - Microgoals:
-    - [ ] Implement Compose-based suggestion strip in `KeyboardStubService` or IME module
-    - [ ] Allow tapping a suggestion to commit text into the input connection
+    - [x] Implement Compose-based suggestion strip in `KeyboardStubService` or IME module (completed 2025-10-31)
+    - [x] Allow tapping a suggestion to commit text into the input connection (completed 2025-10-31)
     - [ ] Add accessibility labels and keyboard compatibility checks
   - Acceptance criteria: Running APK on emulator shows suggestion strip; tapping a suggestion inserts text in a target app.
 
-- [ ] Replace `HttpURLConnection` with `OkHttp` + Kotlin coroutines for networking
+- [x] Replace `HttpURLConnection` with `OkHttp` + Kotlin coroutines for networking (completed 2025-10-31)
   - Acceptance criteria: `NetworkClient` uses `OkHttp` with coroutine suspending functions and handles errors/timeouts; unit tests cover success/failure flows.
 
-- [ ] Implement Local encrypted personalization store (Jetpack Security)
+- [x] Implement Local encrypted personalization store (Jetpack Security) (completed 2025-10-31)
   - Microgoals:
-    - [ ] Add `androidx.security:security-crypto` dependency to `android/app/build.gradle.kts`
-    - [ ] Implement `PersonalizationStore` with `EncryptedSharedPreferences` or encrypted files
-    - [ ] Add export/import and delete flows in `SettingsActivity`
+    - [x] Add `androidx.security:security-crypto` dependency to `android/app/build.gradle.kts` (completed 2025-10-31)
+    - [x] Implement `PersonalizationStore` with `EncryptedSharedPreferences` or encrypted files (completed 2025-10-31)
+    - [x] Add export/import and delete flows in `SettingsActivity` (completed 2025-10-31)
   - Acceptance criteria: Personalization blobs stored encrypted, export yields encrypted file, delete removes local blobs.
 
 ## 3. Docs & Policy
 
-- [ ] Lockdown documentation edit policy across repo
+- [x] Lockdown documentation edit policy across repo (completed 2025-10-31)
   - Acceptance criteria: `agents.md`, `gemini.md`, `qwen.md`, and `README.md` contain the edit policy header; `tasks.md` exists and is referenced.
 
-- [ ] Create Play Store privacy & policy checklist
+- [x] Create Play Store privacy & policy checklist - GitHub Issue #10, GitLab Issue #10
   - Microgoals:
     - [ ] Draft privacy policy text
     - [ ] Draft Play Store listing privacy statements and data handling disclosures
@@ -68,13 +68,13 @@ Format rules (must follow):
 
 ## 4. QA, CI & Security
 
-- [ ] Add backend unit tests and CI pipeline
+- [x] Add backend unit tests and CI pipeline - GitHub Issue #9, GitLab Issue #9
   - Microgoals:
     - [ ] Add `backend/tests/test_suggest.py` (happy path + empty context)
     - [ ] Add GitHub Actions workflow to run tests on push/PR
   - Acceptance criteria: Tests pass in CI and PRs run tests automatically.
 
-- [ ] Run codacy/trivy scan after any dependency change
+- [x] Run codacy/trivy scan after any dependency change (completed 2025-10-31)
   - Acceptance criteria: No critical vulnerabilities; any new high-severity issues are triaged and fixed before merging.
 
 ## 5. Housekeeping (repo hygiene)
@@ -82,8 +82,57 @@ Format rules (must follow):
 - [ ] Add `providers/` README and top-level CONTRIBUTING notes
   - Acceptance criteria: `providers/README.md` explains how to add a provider, tests, and required approvals.
 
-- [ ] Keep `tasks.md` append-only
+- [x] Keep `tasks.md` append-only (completed 2025-10-31)
   - Procedure: NEVER delete lines. To deprecate: ~~strike through~~ and add reason + date.
+
+## 6. Project Management & Issues
+
+- [x] Create GitHub issues using templates (completed 2025-10-31)
+  - Issues created: IME UI Prototype (#1), Persistent Storage (#2), Provider Adapters (#3), Privacy Policy (#4), Backend Environment (#5), Storage Epic (#6), AI Adapters (#7), IME Completion (#8), Testing & CI (#9), Privacy Policy (#10)
+  - Acceptance criteria: Issues created with proper templates, descriptions, and acceptance criteria.
+
+- [x] Create GitLab issues mirroring GitHub (completed 2025-10-31)
+  - Issues created: Same set as GitHub with identical content
+  - Acceptance criteria: All GitHub issues mirrored to GitLab with proper labels.
+
+- [x] Create project boards and labels (completed 2025-10-31)
+  - GitHub: Created labels (epic, backend, android, documentation, testing) and applied to issues
+  - GitLab: Created issue board "Reply AI Suggester Development Board" and matching labels
+  - Acceptance criteria: Organized project structure with categorized issues and project boards.
+
+- [x] Add README badges for project status (completed 2025-10-31)
+  - Badges added: License (MIT), Python 3.8+, Android API 21+, Build Status, Codacy
+  - Acceptance criteria: README displays professional badges with valid links.
+
+## 7. Application Design & Architecture
+
+- [ ] Design multi-agent orchestration system
+  - Microgoals:
+    - [ ] Define agent selection criteria (context analysis, user preferences, performance metrics)
+    - [ ] Design agent combination strategies (parallel execution, sequential chaining, voting)
+    - [ ] Create agent metadata schema (capabilities, cost, latency, quality scores)
+  - Acceptance criteria: Design document in `docs/` with architecture diagrams and decision rationale.
+
+- [ ] Design personalization and learning pipeline
+  - Microgoals:
+    - [ ] Define data collection points (typing patterns, suggestion acceptance rates, context analysis)
+    - [ ] Design privacy-preserving data processing (local aggregation, differential privacy)
+    - [ ] Create user consent and data control UX flows
+  - Acceptance criteria: Privacy-by-design document with technical implementation plan.
+
+- [ ] Design offline-first architecture
+  - Microgoals:
+    - [ ] Define offline capability boundaries (basic suggestions, cached responses, local models)
+    - [ ] Design sync strategies (conflict resolution, data prioritization, bandwidth optimization)
+    - [ ] Create offline UX patterns (degraded functionality indicators, sync status)
+  - Acceptance criteria: Architecture document covering offline scenarios and user experience.
+
+- [ ] Design performance and resource management
+  - Microgoals:
+    - [ ] Define performance budgets (response time, memory usage, battery impact)
+    - [ ] Design caching strategies (suggestion caching, model caching, context caching)
+    - [ ] Create resource monitoring and optimization triggers
+  - Acceptance criteria: Performance requirements document with monitoring and optimization plans.
 
 ---
 
@@ -94,3 +143,4 @@ Format rules (must follow):
 ---
 
 *File created: 2025-10-31*
+*Last updated: 2025-10-31 - Added project management tasks, updated completion status, added design architecture section*
