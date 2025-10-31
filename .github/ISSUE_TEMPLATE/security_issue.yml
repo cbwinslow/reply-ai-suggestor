@@ -1,0 +1,36 @@
+name: Security Issue
+description: Report a security vulnerability
+title: "[SECURITY] "
+labels: ["security"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the security issue
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What is the impact?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Mitigation
+      description: How to fix it
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Any other info

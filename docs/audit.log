@@ -1,0 +1,11 @@
+# Audit log
+
+This file is an append-only audit log for emergency or approver edits to repository documentation.
+
+Format (append-only):
+- YYYY-MM-DD HH:MMZ | @approver | file(s) changed | brief rationale
+
+Example:
+- 2025-10-31 12:00Z | @lead | SRS.md | Emergency privacy fix applied; see PR #123 for details
+
+Do not delete entries.

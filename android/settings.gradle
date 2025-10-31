@@ -1,0 +1,2 @@
+rootProject.name = "reply_ai_suggester"
+include ":app"
