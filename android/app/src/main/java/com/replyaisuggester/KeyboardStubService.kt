@@ -36,6 +36,26 @@ class KeyboardStubService : InputMethodService() {
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         currentInputConnection = currentInputConnection
+        // Fetch suggestions immediately when the input view starts
+        coroutineScope.launch {
+            isLoading = true
+            try {
+                currentContext = getCurrentText()
+                val result = NetworkClient.postSuggest(
+                    userId = "dev_user",
+                    context = currentContext,
+                    modes = listOf("casual", "formal", "witty"),
+                    intensity = 6
+                )
+                result.forEach { suggestion ->
+                    updateInlineSuggestion(suggestion.text, suggestion.tone)
+                }
+            } catch (e: Exception) {
+                // Handle errors gracefully
+            } finally {
+                isLoading = false
+            }
+        }
     }
 
     override fun onFinishInput() {
@@ -50,6 +70,56 @@ class KeyboardStubService : InputMethodService() {
 
     private fun getCurrentText(): String {
         return currentInputConnection?.getTextBeforeCursor(100, 0)?.toString() ?: ""
+    }
+
+    private fun appendSuggestionInline(suggestion: String, tone: String) {
+        val coloredSuggestion = when (tone) {
+            "casual" -> "\u001B[34m$suggestion\u001B[0m" // Blue
+            "formal" -> "\u001B[32m$suggestion\u001B[0m" // Green
+            "witty" -> "\u001B[33m$suggestion\u001B[0m" // Yellow
+            else -> suggestion
+        }
+        currentInputConnection?.commitText(coloredSuggestion, 1)
+    }
+
+    private fun updateInlineSuggestion(text: String, tone: String) {
+        val coloredText = when (tone) {
+            "casual" -> "\u001B[34m$text\u001B[0m" // Blue
+            "formal" -> "\u001B[32m$text\u001B[0m" // Green
+            "witty" -> "\u001B[33m$text\u001B[0m" // Yellow
+            else -> text
+        }
+        currentInputConnection?.commitText(coloredText, 1)
+    }
+
+    @Composable
+    fun InlineSuggestionUI(
+        userInput: String,
+        suggestion: String,
+        tone: String,
+        onSuggestionAccepted: () -> Unit
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = userInput,
+                modifier = Modifier.weight(1f),
+                fontSize = 16.sp
+            )
+            Text(
+                text = suggestion,
+                color = when (tone) {
+                    "casual" -> Color.Blue
+                    "formal" -> Color.Green
+                    "witty" -> Color.Yellow
+                    else -> Color.Gray
+                },
+                fontSize = 16.sp,
+                modifier = Modifier.clickable(onClick = onSuggestionAccepted)
+            )
+        }
     }
 
     @Composable
