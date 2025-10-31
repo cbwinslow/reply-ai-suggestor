@@ -1,8 +1,9 @@
+from typing import List
+import logging
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
-import logging
 
 app = FastAPI(title="reply-ai-suggester backend")
 
@@ -98,7 +99,8 @@ async def upload_personalization(payload: dict):
     if not user_id or artifacts is None:
         raise HTTPException(status_code=400, detail="user_id and artifacts required")
     _personalization_store[user_id] = {"artifacts": artifacts}
-    logger.info("Saved personalization for %s (keys=%s)", user_id, list(artifacts.keys()) if isinstance(artifacts, dict) else [])
+    keys_info = list(artifacts.keys()) if isinstance(artifacts, dict) else []
+    logger.info("Saved personalization for %s (keys=%s)", user_id, keys_info)
     return {"status": "ok"}
 
 

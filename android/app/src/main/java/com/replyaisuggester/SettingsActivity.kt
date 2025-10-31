@@ -12,8 +12,6 @@ import android.widget.Toast
 import android.content.ClipboardManager
 import android.content.ClipData
 import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SettingsActivity : ComponentActivity() {
@@ -29,9 +27,11 @@ class SettingsActivity : ComponentActivity() {
 fun SettingsScreen() {
     val context = LocalContext.current
     val store = remember { PersonalizationStore(context) }
+    val coroutineScope = rememberCoroutineScope()
     var consent by remember { mutableStateOf(store.hasConsent()) }
     var intensity by remember { mutableStateOf(5f) }
     var statusMessage by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     MaterialTheme {
         Column(modifier = Modifier
@@ -68,32 +68,50 @@ fun SettingsScreen() {
                     Text("Export")
                 }
 
-                Button(onClick = {
-                    // Upload in background
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val exported = store.exportPersonalization()
-                        val success = NetworkClient.uploadPersonalization("dev_user", exported)
-                        CoroutineScope(Dispatchers.Main).launch {
-                            statusMessage = if (success) "Uploaded personalization" else "Upload failed"
-                            Toast.makeText(context, statusMessage, Toast.LENGTH_SHORT).show()
+                Button(
+                    onClick = {
+                        if (isLoading) return@Button
+                        coroutineScope.launch {
+                            isLoading = true
+                            try {
+                                val exported = store.exportPersonalization()
+                                val success = NetworkClient.uploadPersonalization("dev_user", exported)
+                                statusMessage = if (success) "Uploaded personalization" else "Upload failed"
+                                Toast.makeText(context, statusMessage, Toast.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                statusMessage = "Upload error: ${e.message}"
+                                Toast.makeText(context, statusMessage, Toast.LENGTH_SHORT).show()
+                            } finally {
+                                isLoading = false
+                            }
                         }
-                    }
-                }) {
-                    Text("Upload")
+                    },
+                    enabled = !isLoading
+                ) {
+                    Text(if (isLoading) "Uploading..." else "Upload")
                 }
 
-                Button(onClick = {
-                    // Delete both local and server-side
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val serverDeleted = NetworkClient.deletePersonalization("dev_user")
-                        store.clearPersonalization()
-                        CoroutineScope(Dispatchers.Main).launch {
-                            statusMessage = "Deleted local data" + if (serverDeleted) ", server deletion OK" else ", server deletion failed"
-                            Toast.makeText(context, statusMessage, Toast.LENGTH_SHORT).show()
+                Button(
+                    onClick = {
+                        if (isLoading) return@Button
+                        coroutineScope.launch {
+                            isLoading = true
+                            try {
+                                val serverDeleted = NetworkClient.deletePersonalization("dev_user")
+                                store.clearPersonalization()
+                                statusMessage = "Deleted local data" + if (serverDeleted) ", server deletion OK" else ", server deletion failed"
+                                Toast.makeText(context, statusMessage, Toast.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                statusMessage = "Delete error: ${e.message}"
+                                Toast.makeText(context, statusMessage, Toast.LENGTH_SHORT).show()
+                            } finally {
+                                isLoading = false
+                            }
                         }
-                    }
-                }) {
-                    Text("Delete")
+                    },
+                    enabled = !isLoading
+                ) {
+                    Text(if (isLoading) "Deleting..." else "Delete")
                 }
             }
 

@@ -1,119 +1,109 @@
 package com.replyaisuggester
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-import java.io.BufferedOutputStream
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.URL
+import java.util.concurrent.TimeUnit
 
 object NetworkClient {
     // Use emulator host mapping for localhost during development: 10.0.2.2
-    private const val SUGGEST_URL = "http://10.0.2.2:8000/suggest"
+    private const val BASE_URL = "http://10.0.2.2:8000"
+    private const val SUGGEST_URL = "$BASE_URL/suggest"
+    private const val UPLOAD_URL = "$BASE_URL/upload_personalization"
+    private const val DELETE_URL = "$BASE_URL/delete_personalization"
 
-    fun postSuggest(userId: String, context: String, modes: List<String>, intensity: Int): List<String> {
-        val url = URL(SUGGEST_URL)
-        val conn = (url.openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            setRequestProperty("Content-Type", "application/json; charset=utf-8")
-            doOutput = true
-            connectTimeout = 5000
-            readTimeout = 5000
-        }
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(5, TimeUnit.SECONDS)
+        .readTimeout(5, TimeUnit.SECONDS)
+        .writeTimeout(5, TimeUnit.SECONDS)
+        .build()
 
-        val payload = JSONObject().apply {
-            put("user_id", userId)
-            put("context", context)
-            put("modes", modes)
-            put("intensity", intensity)
-        }
+    private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
-        try {
-            BufferedOutputStream(conn.outputStream).use { out ->
-                val bytes = payload.toString().toByteArray(Charsets.UTF_8)
-                out.write(bytes)
-                out.flush()
-            }
-
-            val code = conn.responseCode
-            if (code !in 200..299) {
-                // Return a fallback suggestion on error
-                return listOf("(error contacting backend: $code)")
-            }
-
-            val resp = StringBuilder()
-            BufferedReader(InputStreamReader(conn.inputStream)).use { reader ->
-                var line: String? = reader.readLine()
-                while (line != null) {
-                    resp.append(line)
-                    line = reader.readLine()
+    suspend fun postSuggest(userId: String, context: String, modes: List<String>, intensity: Int): List<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val payload = JSONObject().apply {
+                    put("user_id", userId)
+                    put("context", context)
+                    put("modes", modes)
+                    put("intensity", intensity)
                 }
-            }
 
-            val json = JSONObject(resp.toString())
-            val arr = json.getJSONArray("suggestions")
-            val outList = mutableListOf<String>()
-            for (i in 0 until arr.length()) {
-                outList.add(arr.getString(i))
+                val requestBody = payload.toString().toRequestBody(jsonMediaType)
+                val request = Request.Builder()
+                    .url(SUGGEST_URL)
+                    .post(requestBody)
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        return@withContext listOf("(error contacting backend: ${response.code})")
+                    }
+
+                    val responseBody = response.body?.string()
+                        ?: return@withContext listOf("(empty response from backend)")
+
+                    val json = JSONObject(responseBody)
+                    val arr = json.getJSONArray("suggestions")
+                    val outList = mutableListOf<String>()
+                    for (i in 0 until arr.length()) {
+                        outList.add(arr.getString(i))
+                    }
+                    outList
+                }
+            } catch (e: Exception) {
+                listOf("(network error: ${e.message ?: "unknown"})")
             }
-            return outList
-        } catch (e: Exception) {
-            return listOf("(network error: ${e.message ?: "unknown"})")
-        } finally {
-            conn.disconnect()
         }
     }
 
-    fun uploadPersonalization(userId: String, base64Payload: String): Boolean {
-        val url = URL("http://10.0.2.2:8000/upload_personalization")
-        val conn = (url.openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            setRequestProperty("Content-Type", "application/json; charset=utf-8")
-            doOutput = true
-            connectTimeout = 5000
-            readTimeout = 5000
-        }
+    suspend fun uploadPersonalization(userId: String, base64Payload: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val payload = JSONObject().apply {
+                    put("user_id", userId)
+                    put("artifacts", JSONObject().put("export", base64Payload))
+                }
 
-        val payload = JSONObject().apply {
-            put("user_id", userId)
-            put("artifacts", JSONObject().put("export", base64Payload))
-        }
+                val requestBody = payload.toString().toRequestBody(jsonMediaType)
+                val request = Request.Builder()
+                    .url(UPLOAD_URL)
+                    .post(requestBody)
+                    .build()
 
-        return try {
-            BufferedOutputStream(conn.outputStream).use { out ->
-                val bytes = payload.toString().toByteArray(Charsets.UTF_8)
-                out.write(bytes)
-                out.flush()
+                client.newCall(request).execute().use { response ->
+                    response.isSuccessful
+                }
+            } catch (e: Exception) {
+                false
             }
-            conn.responseCode in 200..299
-        } catch (e: Exception) {
-            false
-        } finally {
-            conn.disconnect()
         }
     }
 
-    fun deletePersonalization(userId: String): Boolean {
-        val url = URL("http://10.0.2.2:8000/delete_personalization")
-        val conn = (url.openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            setRequestProperty("Content-Type", "application/json; charset=utf-8")
-            doOutput = true
-            connectTimeout = 5000
-            readTimeout = 5000
-        }
-        val payload = JSONObject().apply { put("user_id", userId) }
-        return try {
-            BufferedOutputStream(conn.outputStream).use { out ->
-                val bytes = payload.toString().toByteArray(Charsets.UTF_8)
-                out.write(bytes)
-                out.flush()
+    suspend fun deletePersonalization(userId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val payload = JSONObject().apply {
+                    put("user_id", userId)
+                }
+
+                val requestBody = payload.toString().toRequestBody(jsonMediaType)
+                val request = Request.Builder()
+                    .url(DELETE_URL)
+                    .post(requestBody)
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    response.isSuccessful
+                }
+            } catch (e: Exception) {
+                false
             }
-            conn.responseCode in 200..299
-        } catch (e: Exception) {
-            false
-        } finally {
-            conn.disconnect()
         }
     }
 }

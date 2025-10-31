@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id("com.android.application") version "8.1.4"
+    id("org.jetbrains.kotlin.android") version "1.9.10"
 }
 
 android {
@@ -55,6 +55,11 @@ dependencies {
 
     // Jetpack Security for encrypted storage
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    // OkHttp for networking
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // Kotlin coroutines for async operations
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
