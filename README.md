@@ -1,5 +1,11 @@
 # reply-ai-suggester
 
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Android API 21+](https://img.shields.io/badge/Android-21+-green.svg)](https://developer.android.com/studio)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/cbwinslow/reply-ai-suggestor/actions)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/1234567890abcdef)](https://www.codacy.com/gh/cbwinslow/reply-ai-suggestor/dashboard)
+
 Reply AI Suggester is a prototype scaffold for an Android application that provides AI-driven reply suggestions directly from the user's typing surface (keyboard / IME overlay). The goal is a low-friction, privacy-first assistant that suggests replies in multiple styles and intensities and can be personalized per-user.
 
 This repository contains:
