@@ -1,4 +1,31 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+ENV/
 
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Android
+.gradle/
+.idea/
+local.properties
+*.iml
+*.apk
+*.ap_
+*.aab
+build/
+captures/
+.externalNativeBuild
+.cxx
+
+# Environment variables
+.env
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
