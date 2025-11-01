@@ -4,20 +4,21 @@ import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from config import settings
 
-app = FastAPI(title="reply-ai-suggester backend")
+app = FastAPI(title=settings.app_name + " backend")
 
-# Allow CORS for local development (adjust in production)
+# Configure CORS using settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000", "http://localhost:8080", "*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.cors_origins,
+    allow_credentials=settings.cors_allow_credentials,
+    allow_methods=settings.cors_allow_methods,
+    allow_headers=settings.cors_allow_headers,
 )
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("reply-ai-suggester")
+logging.basicConfig(level=settings.log_level)
+logger = logging.getLogger(settings.app_name)
 
 
 class SuggestRequest(BaseModel):

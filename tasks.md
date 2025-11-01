@@ -152,6 +152,95 @@ Format rules (must follow):
 - [x] Implement privacy compliance features (consent dialog, settings screen, data controls) (completed 2025-10-31)
   - Acceptance criteria: MainActivity shows consent dialog on first launch; SettingsActivity allows toggling consent/personalization, export/delete data; backend supports upload/delete personalization endpoints.
 
+## 9. Development Infrastructure (November 1, 2025)
+
+- [x] Implement centralized configuration management system
+  - Microgoals:
+    - [x] Create .env.example template with all configuration variables
+    - [ ] Update backend to use environment variables for configuration
+    - [ ] Update Android to handle configuration through BuildConfig and resources
+  - Acceptance criteria: All configuration centralized in environment variables with proper defaults and validation.
+
+- [x] Create automated CI/CD pipelines with GitHub Actions
+  - Microgoals:
+    - [x] Implement Android CI pipeline with code quality checks, tests, and builds
+    - [x] Implement Backend CI pipeline with Python formatting, testing, and security scanning
+    - [ ] Add SonarQube integration for code quality monitoring
+    - [ ] Add automated dependency updates with Renovate/Dependabot
+  - Acceptance criteria: Automated pipelines for Android APK builds, backend deployment, and comprehensive testing.
+
+- [ ] Set up Kotlin static analysis tools (ktlint, Detekt)
+  - Microgoals:
+    - [ ] Install and configure ktlint with custom rules
+    - [ ] Install and configure Detekt with security and performance rules
+    - [ ] Integrate tools into Gradle build process
+    - [ ] Add GitHub Actions integration for automated analysis
+  - Acceptance criteria: Kotlin code automatically formatted and analyzed with detailed reports.
+
+- [ ] Implement Python code formatting tools (Black, isort)
+  - Microgoals:
+    - [ ] Create pyproject.toml with Black and isort configuration
+    - [ ] Add tools to Poetry dev dependencies
+    - [ ] Integrate into GitHub Actions CI pipeline
+    - [ ] Add pre-commit hooks for local development
+  - Acceptance criteria: Python code automatically formatted and imports sorted consistently.
+
+- [ ] Configure pre-commit hooks for quality gates
+  - Microgoals:
+    - [ ] Set up pre-commit with .pre-commit-config.yaml
+    - [ ] Configure hooks for ktlint, Detekt, Black, isort, flake8, mypy
+    - [ ] Add security scanning hooks (bandit, safety)
+    - [ ] Create installation and setup documentation
+  - Acceptance criteria: Pre-commit hooks enforce quality standards before code commits.
+
+- [ ] Set up SonarQube code quality monitoring
+  - Microgoals:
+    - [ ] Configure SonarCloud integration with GitHub
+    - [ ] Add Sonar analysis to CI pipelines
+    - [ ] Configure quality gates and coverage requirements
+    - [ ] Create quality profiles for Kotlin and Python
+  - Acceptance criteria: Automated code quality monitoring with detailed metrics and quality gates.
+
+- [ ] Create Docker Compose development environment
+  - Microgoals:
+    - [ ] Create Dockerfiles for backend and development services
+    - [ ] Create docker-compose.yml with hot-reload capabilities
+    - [ ] Add development database (PostgreSQL) and Redis
+    - [ ] Create startup scripts and documentation
+  - Acceptance criteria: One-command development environment with hot-reload for rapid iteration.
+
+- [ ] Implement dependency management automation
+  - Microgoals:
+    - [ ] Set up Renovate for automated dependency updates
+    - [ ] Configure dependency vulnerability scanning
+    - [ ] Add license compliance checking
+    - [ ] Create update review and approval processes
+  - Acceptance criteria: Automated dependency updates with security and license monitoring.
+
+- [ ] Establish monitoring and observability infrastructure
+  - Microgoals:
+    - [ ] Implement structured logging with correlation IDs
+    - [ ] Add health check endpoints with detailed metrics
+    - [ ] Set up performance metrics collection (Prometheus/Grafana)
+    - [ ] Create alerting and monitoring dashboards
+  - Acceptance criteria: Comprehensive monitoring and observability for production readiness.
+
+- [ ] Update all components to latest frameworks and patterns
+  - Microgoals:
+    - [ ] Update to latest Android Jetpack Compose BOM
+    - [ ] Upgrade Kotlin coroutines and async patterns
+    - [ ] Update FastAPI with latest async capabilities
+    - [ ] Implement reactive programming patterns throughout
+  - Acceptance criteria: All components using current versions with modern development patterns.
+
+- [ ] Create comprehensive documentation and setup guides
+  - Microgoals:
+    - [ ] Create development setup guide with troubleshooting
+    - [ ] Document CI/CD pipeline and deployment processes
+    - [ ] Create code quality standards and contribution guidelines
+    - [ ] Document monitoring and observability procedures
+  - Acceptance criteria: Complete documentation for development, deployment, and maintenance.
+
 ---
 
 ### Example of striking-out (do not remove lines)
@@ -161,4 +250,4 @@ Format rules (must follow):
 ---
 
 *File created: 2025-10-31*
-*Last updated: 2025-10-31 - Added project management tasks, updated completion status, added design architecture section*
+*Last updated: 2025-11-01 - Added comprehensive development infrastructure section with 11 major task areas*
