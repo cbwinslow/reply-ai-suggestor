@@ -4,7 +4,7 @@ import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from config import settings
+from backend.config import settings
 
 app = FastAPI(title=settings.app_name + " backend")
 
@@ -43,7 +43,7 @@ async def health():
     return {"status": "ok"}
 
 
-from providers.base import BaseProvider, SuggestRequest as BaseSuggestRequest, SuggestResponse, SuggestionItem, ProviderConfig
+from backend.providers.base import BaseProvider, SuggestRequest as BaseSuggestRequest, SuggestResponse, SuggestionItem, ProviderConfig
 
 def _intensity_suffix(intensity: int) -> str:
     # Simple heuristic: higher intensity -> add punctuation/emojis or stronger wording
